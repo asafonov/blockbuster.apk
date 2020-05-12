@@ -20,12 +20,7 @@ public class MainActivity extends Activity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         mWebView.setWebViewClient(new MyWebViewClient());
-
-        // REMOTE RESOURCE
-        mWebView.loadUrl("https://asafonov.org/arkanoid");
-
-        // LOCAL RESOURCE
-        // mWebView.loadUrl("file:///android_asset/index.html");
+        mWebView.loadUrl("file:///android_asset/index.html");
     }
 
     @Override

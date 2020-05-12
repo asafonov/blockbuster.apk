@@ -1,11 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<style>
+body {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  font-family: mono;
+  font-size: 2vw;
+}
+h1 {
+  font-size: 6vw;
+}
+div {
+  position: absolute;
+}
+#field {
+  background-image: url(skin/background.jpg);
+  background-repeat: repeat;
+  background-size: 100% 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.alert {
+  width: 40%;
+  margin-left: 30%;
+  margin-top: 5%;
+  color: white;
+  background-color: #660000;
+  opacity: 0.7;
+  text-align: center;
+  position: absolute;
+  padding: 8px;
+  font-size: 2vw;
+  border: 3px solid white;
+  border-radius: 12px;
+  box-shadow: 10px 10px 10px black;
+}
+.info {
+  width: 70%;
+  height: 70%;
+  background-color: #660000;
+  box-shadow: 10px 10px 10px black;
+  border-radius: 12px;
+  opacity: 0.9;
+  margin-left: 15%;
+  margin-top: 5%;
+  padding: 12px;
+  color: white;
+  text-align: center;
+}
+.info button {
+  font-size: 3vw;
+  background-color: #006600;
+  box-shadow: 10px 10px 10px black;
+  border-radius: 12px;
+  padding: 12px;
+  color: white;
+  min-width: 30%;
+  outline: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  -webkit-focus-ring-color: rgba(255, 255, 255, 0);
+}
+#gameover {
+  display: none;
+}
+#hero {
+  background-color: green;
+  border: 1px solid black;
+  box-shadow: 10px 10px 10px black;
+  border-radius: 3px;
+}
+#ball {
+  background-image: url(skin/ball.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+.object {
+  border: 1px solid black;
+  box-shadow: 10px 10px 10px black;
+  border-radius: 3px;
+}
+.object_0 {
+  display: none;
+}
+.object_1 {
+  background-color: green;
+}
+.object_2 {
+  background-color: red;
+}
+.scores {
+  color: white;
+  font-size: 2.2vw;
+  right: 0px;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: #444;
+  opacity: 0.9;
+}
+#highscore {
+  font-size: 2.5vw;
+  color: red;
+}
+#highscore span {
+  font-size: 3vw;
+  font-weight: bold;
+}
+</style>
 </head>
-<body style="font-family: monospace">
-    REPLACE THIS FILE WITH YOUR OWN INDEX.HTML
+<body>
+<div id="field"></div>
+<div id="start" class="info">
+  <h1>Arkanoid</h1>
+  <p><label><input name="sfx" type="checkbox" checked> Sound</label></p>
+  <p>Size: <select name="size"><option value="32x18">Small</option><option value="40x22" selected>Medium</option><option value="48x27">Big</option></select></p>
+  <p><button onclick="start()">Start</button></p>
+</div>
+<div id="gameover" class="info">
+  <h1></h1>
+  <p id="highscore">New High Score: <span></span></p>
+  <p><button onclick="location.reload()">New game</button></p>
+</div>
+<audio preload="auto">
+  <source src="sound/ball.mp3">
+  <source src="sound/bonus.mp3">
+  <source src="sound/explosion.mp3">
+</audio>
+<script src="game.js"></script>
 </body>
-</html>
