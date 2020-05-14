@@ -799,7 +799,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   window.view = view;
   document.querySelector('#start button').focus();
   document.querySelector('#start input[name=sfx]').checked = window.localStorage.getItem('sfx') == "false" ? false : true;
-  window.localStorage.getItem('size') && (document.querySelector('#start select[name=size]') = window.localStorage.getItem('size'));
+  window.localStorage.getItem('size') && (document.querySelector('#start select[name=size]').value = window.localStorage.getItem('size'));
 });
 
 function start() {
