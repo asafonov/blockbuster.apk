@@ -504,6 +504,11 @@ class Score {
     return true;
   }
 
+  processGameWon() {
+    this.scores *= 2;
+    asafonov.messageBus.send(asafonov.events.SCORES_UPDATED, {scores: this.scores});
+  }
+
   isNewHighScore() {
     return this.scores > this.highscore;
   }
@@ -596,6 +601,7 @@ class FieldView {
   }
 
   onGameWon() {
+    asafonov.score.processGameWon();
     this.gameOver("You Won!");
   }
 
@@ -763,11 +769,16 @@ class ScoreView {
     this.element = document.createElement('div');
     this.element.className = 'scores';
     document.body.appendChild(this.element);
+    this.displayScore(0);
     asafonov.messageBus.subscribe(asafonov.events.SCORES_UPDATED, this, 'onScoresUpdated');
   }
 
   onScoresUpdated (eventData) {
-    this.element.innerHTML = 'Score: ' + eventData.scores;
+    this.displayScore(eventData.scores);
+  }
+
+  displayScore (score) {
+    this.element.innerHTML = 'Score: ' + score;
   }
 
 }
