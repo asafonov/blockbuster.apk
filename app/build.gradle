@@ -4,7 +4,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        applicationId "org.asafonov.arkanoid"
+        applicationId "org.asafonov.blockbuster"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 2
