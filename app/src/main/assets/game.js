@@ -607,7 +607,7 @@ class FieldView {
 
   gameOver (msg) {
     document.querySelector('#gameover').style.display = 'block';
-    document.querySelector('#gameover h1').innerHTML = msg || 'Game Over';
+    document.querySelector('#gameover .status').innerHTML = msg || 'Game Over';
     document.querySelector('#gameover button').focus();
     const isNewHighScore = asafonov.score.isNewHighScore();
     document.querySelector('#gameover #highscore').style.display = isNewHighScore ? 'block' : 'none';
@@ -766,10 +766,7 @@ class HeroView {
 class ScoreView {
 
   constructor() {
-    this.element = document.createElement('div');
-    this.element.className = 'scores';
-    document.body.appendChild(this.element);
-    this.displayScore(0);
+    this.element = document.querySelector('div.scores span');
     asafonov.messageBus.subscribe(asafonov.events.SCORES_UPDATED, this, 'onScoresUpdated');
   }
 
@@ -778,7 +775,7 @@ class ScoreView {
   }
 
   displayScore (score) {
-    this.element.innerHTML = 'Score: ' + score;
+    this.element.innerHTML = score;
   }
 
 }
@@ -809,19 +806,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const view = new FieldView();
   window.view = view;
   document.querySelector('#start button').focus();
-  document.querySelector('#start input[name=sfx]').checked = window.localStorage.getItem('sfx') == "false" ? false : true;
-  window.localStorage.getItem('size') && (document.querySelector('#start select[name=size]').value = window.localStorage.getItem('size'));
+  document.querySelector('input[name=sfx]').checked = window.localStorage.getItem('sfx') == "false" ? false : true;
+  window.localStorage.getItem('size') && (document.querySelector('input[name=size]:checked').value = window.localStorage.getItem('size'));
 });
 
 function start() {
   document.getElementById('start').style.display = 'none';
-  asafonov.settings.sfx = document.querySelector('#start input[name=sfx]').checked;
+  asafonov.settings.sfx = document.querySelector('input[name=sfx]').checked;
   asafonov.settings.sfx && (new Audio('sound/ball.mp3')).play();
-  window.localStorage.setItem('size', document.querySelector('#start select[name=size]').value);
+  window.localStorage.setItem('size', document.querySelector('input[name=size]:checked').value);
   window.localStorage.setItem('sfx', asafonov.settings.sfx);
 
   // views and models
-  const size = document.querySelector('#start select[name=size]').value.split('x');
+  const size = document.querySelector('input[name=size]:checked').value.split('x');
   window.view.field = new Field(size[0], size[1]);
   window.view.init();
   const hero = new Subject();
