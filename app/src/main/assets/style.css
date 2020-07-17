@@ -139,8 +139,9 @@ div {
 #field {
     background-color: #536878;
     width: 100%;
-    height: 100%;
+    height: calc(100% - var(--size_3));
     overflow: hidden;
+    margin-top: var(--size_3);
 }
 
 .scores {
@@ -504,4 +505,16 @@ section + p {
 input[type=radio]:checked + .size_label {
     color: var(--c_green1);
     font-size: var(--size_2);
+}
+
+@media only screen and (max-width: 767px) {
+    :root {
+        --size_00: 0.1vw;
+        --size_0: 1.4vw;
+        --size_1: 2vw;
+        --size_2: 2.8vw;
+        --size_3: 4vw;
+        --size_4: 5.6vw;
+        --size_5: 5.6vw;
+    }
 }

@@ -589,8 +589,8 @@ class FieldView {
   }
 
   initSize() {
-    this.width = document.documentElement.offsetWidth;
-    this.height = document.documentElement.offsetHeight;
+    this.width = this.element.offsetWidth;
+    this.height = this.element.offsetHeight;
     this.itemWidth = this.width / this.field.width;
     this.itemHeight = this.height / this.field.height;
     this.heroView.setSize(this.itemWidth, this.itemHeight);
@@ -689,7 +689,7 @@ class FieldView {
     e.preventDefault();
     var x = e.touches[e.touches.length - 1].clientX;
 
-    if (x < document.documentElement.offsetWidth / 2) {
+    if (x < this.element.offsetWidth / 2) {
       this.startHeroMoving('moveLeft');
     } else {
       this.startHeroMoving('moveRight');
@@ -807,7 +807,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
   window.view = view;
   document.querySelector('#start button').focus();
   document.querySelector('input[name=sfx]').checked = window.localStorage.getItem('sfx') == "false" ? false : true;
-  window.localStorage.getItem('size') && (document.querySelector('input[name=size]:checked').value = window.localStorage.getItem('size'));
+  const size = window.localStorage.getItem('size');
+
+  if (size) {
+    const sizes = document.querySelectorAll('input[name=size]');
+
+    for (let i = 0; i < sizes.length; ++i) {
+      sizes[i].value == size && (sizes[i].checked = true);
+    }
+  }
 });
 
 function start() {
