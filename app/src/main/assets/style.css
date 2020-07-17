@@ -251,6 +251,8 @@ input[type=checkbox]:checked + .sound_label_ico span i {
 
 .alert {
     color: var(--c_red1);
+    -webkit-text-stroke-width: var(--size_00);
+    -webkit-text-stroke-color: var(--c_red2);
     height: var(--size_3);
     line-height: var(--size_3);
     width: 100%;
