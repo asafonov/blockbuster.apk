@@ -69,7 +69,7 @@ class Ball {
 
   destroy() {
     clearInterval(this.interval);
-    asafonov.messageBus.send(asafonov.events.GAME_LOST, {});
+    console.log("Ball destroy");
   }
 }
 
@@ -264,8 +264,24 @@ class Field {
       obj.changeDirection(Ball.HORIZONTAL_WALL);
       obj.move();
     } else if (obj.position.y > this.height - 1) {
-      obj.destroy();
+      asafonov.messageBus.send(asafonov.events.GAME_LOST, {});
     }
+  }
+
+  destroy() {
+    this.hero.destroy();
+    this.hero  = null;
+    this.ball.destroy();
+    this.ball = null;
+    asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
+    asafonov.messageBus.unsubscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
+
+    for (var i = 0; i < this.objects.length; ++i) {
+      this.objects[i] = null;
+    }
+
+    this.objects.length = 0;
+    console.log("Field destroy");
   }
 }
 class Subject {
@@ -306,6 +322,10 @@ class Subject {
   setWidth (width) {
     this.width = width;
     asafonov.messageBus.send(asafonov.events.HERO_WIDTH_CHANGED, {obj: this});
+  }
+
+  destroy() {
+    console.log("Hero destroy");
   }
 }
 class HeroSpeedBonus extends AbstractBonus {
@@ -544,6 +564,16 @@ class BallView {
   onBallChangedDirection() {
     this.ballChangedDirectionSound.play();
   }
+
+  destroy() {
+    asafonov.messageBus.unsubscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
+
+    if (asafonov.settings.sfx) {
+      asafonov.messageBus.unsubscribe(asafonov.events.BALL_CHANGED_DIRECTION, this, 'onBallChangedDirection');
+    }
+
+    console.log("BallView destroy");
+  }
 }
 class FieldView {
 
@@ -612,6 +642,7 @@ class FieldView {
     const isNewHighScore = asafonov.score.isNewHighScore();
     document.querySelector('#gameover #highscore').style.display = isNewHighScore ? 'block' : 'none';
     isNewHighScore && asafonov.score.updateHighScore() && (document.querySelector('#highscore span').innerHTML = asafonov.score.scores);
+    this.destroy();
   }
 
   onNewHighscore() {
@@ -706,6 +737,16 @@ class FieldView {
   }
 
   destroy() {
+    if (this.heroMoveInterval) {
+      clearInterval(this.heroMoveInterval);
+    }
+
+    this.heroView.destroy();
+    this.ballView.destroy();
+    this.field.destroy();
+    this.heroView = null;
+    this.ballView = null;
+    this.field = null;
     asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onHeroAdded');
     asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onBallAdded');
     asafonov.messageBus.unsubscribe(asafonov.events.OBJECT_ADDED, this, 'onObjectAdded');
@@ -716,6 +757,7 @@ class FieldView {
     asafonov.messageBus.unsubscribe(asafonov.events.NEW_HIGHSCORE, this, 'onNewHighscore');
     window.removeEventListener('keydown', this.onKeyDownProxy);
     window.removeEventListener('touchstart', this.onTouchProxy);
+    console.log("FieldView destroy");
   }
 }
 class HeroView {
@@ -761,6 +803,13 @@ class HeroView {
     if (this.hero === eventData.obj) {
       this.updateWidth();
     }
+  }
+
+  destroy() {
+    asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onHeroAdded');
+    asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
+    asafonov.messageBus.unsubscribe(asafonov.events.HERO_WIDTH_CHANGED, this, 'onHeroWidthChanged');
+    console.log("HeroView destroy");
   }
 }
 class ScoreView {
