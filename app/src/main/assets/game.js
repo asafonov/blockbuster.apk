@@ -551,8 +551,9 @@ class BallView {
   setSize (width, height) {
     this.width = width || this.width;
     this.height = height || this.height;
-    this.element.style.width = this.width + 'px';
-    this.element.style.height = this.height + 'px';
+    const displaySize = Math.min(this.width, this.height);
+    this.element.style.width = displaySize + 'px';
+    this.element.style.height = displaySize + 'px';
   }
 
   onBallMoved (eventData) {
