@@ -338,7 +338,7 @@ input[type=checkbox]:checked + .sound_label_ico span i {
     display: none;
 }
 
-#highscore {
+#highscore, #stats {
     margin-bottom: var(--size_3);
 }
 

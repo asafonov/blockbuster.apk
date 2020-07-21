@@ -27,7 +27,15 @@ class Ball {
     this.direction = Math.random() > 0.5 ? Ball.DIRECTION_UPRIGHT : Ball.DIRECTION_UPLEFT;
     this.angle = Math.random() > 0.5 ? 1 : 1/2;
     this.speed = asafonov.settings.ballSpeed;
+    this.resume();
+  }
+
+  resume() {
     this.interval = setInterval(this.move.bind(this), 50);
+  }
+
+  pause() {
+    clearInterval(this.interval);
   }
 
   moveByDelta (delta) {
@@ -68,7 +76,7 @@ class Ball {
   }
 
   destroy() {
-    clearInterval(this.interval);
+    this.pause();
     console.log("Ball destroy");
   }
 }
@@ -108,6 +116,8 @@ class Field {
     this.objectsCount = 0;
     this.hero = null;
     this.ball = null;
+    this.heroMoveInterval;
+    this.isPaused = false;
     asafonov.messageBus.subscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
     asafonov.messageBus.subscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
   }
@@ -268,7 +278,33 @@ class Field {
     }
   }
 
+  playPause() {
+    this[this.isPaused ? 'resume' : 'pause']();
+    this.isPaused = ! this.isPaused;
+  }
+
+  startHeroMoving (direction) {
+    if (this.heroMoveInterval) {
+      clearInterval(this.heroMoveInterval);
+    }
+
+    const hero = this.hero;
+    this.heroMoveInterval = setInterval(function() {hero[direction]();}, 60);
+  }
+
+  resume() {
+    this.ball.resume();
+  }
+
+  pause() {
+    if (this.heroMoveInterval) {
+      clearInterval(this.heroMoveInterval);
+    }
+    this.ball.pause();
+  }
+
   destroy() {
+    this.pause();
     this.hero.destroy();
     this.hero  = null;
     this.ball.destroy();
@@ -504,6 +540,8 @@ class Score {
     this.hero = hero;
     this.ball = ball;
     this.scores = 0;
+    this.totalGames = window.localStorage.getItem('totalGames') || 0;
+    this.wonGames = window.localStorage.getItem('wonGames') || 0;
     this.highscore = this.getHighScore();
     this.highscoreReported = false;
     asafonov.messageBus.subscribe(asafonov.events.OBJECT_COLLISION, this, 'onObjectCollision');
@@ -525,6 +563,7 @@ class Score {
   }
 
   processGameWon() {
+    this.wonGames++;
     this.scores *= 2;
     asafonov.messageBus.send(asafonov.events.SCORES_UPDATED, {scores: this.scores});
   }
@@ -532,6 +571,13 @@ class Score {
   isNewHighScore() {
     return this.scores > this.highscore;
   }
+
+  updateGameStats() {
+    this.totalGames++;
+    window.localStorage.setItem('totalGames', this.totalGames);
+    window.localStorage.setItem('wonGames', this.wonGames);
+  }
+
 }
 
 Score.BASE_SCORE = 8;
@@ -586,7 +632,6 @@ class FieldView {
     this.field;
     this.element;
     this.alertElement;
-    this.heroMoveInterval;
     this.onKeyDownProxy = this.onKeyDown.bind(this);
     this.onTouchProxy = this.onTouch.bind(this);
     this.hideAlertProxy = this.hideAlert.bind(this);
@@ -637,11 +682,13 @@ class FieldView {
   }
 
   gameOver (msg) {
+    asafonov.score.updateGameStats();
     document.querySelector('#gameover').style.display = 'block';
     document.querySelector('#gameover .status').innerHTML = msg || 'Game Over';
     document.querySelector('#gameover button').focus();
     const isNewHighScore = asafonov.score.isNewHighScore();
     document.querySelector('#gameover #highscore').style.display = isNewHighScore ? 'block' : 'none';
+    document.querySelector('#gameover #stats').innerHTML = 'Games won: ' + asafonov.score.wonGames + '/' + asafonov.score.totalGames;
     isNewHighScore && asafonov.score.updateHighScore() && (document.querySelector('#highscore span').innerHTML = asafonov.score.scores);
     this.destroy();
   }
@@ -711,9 +758,11 @@ class FieldView {
 
   onKeyDown (e) {
     if (e.keyCode == 37) {
-      this.startHeroMoving('moveLeft');
+      this.field.startHeroMoving('moveLeft');
     } else if (e.keyCode == 39) {
-      this.startHeroMoving('moveRight');
+      this.field.startHeroMoving('moveRight');
+    } else if (e.keyCode == 32) {
+      this.field.playPause();
     }
   }
 
@@ -721,27 +770,16 @@ class FieldView {
     e.preventDefault();
     var x = e.touches[e.touches.length - 1].clientX;
 
-    if (x < this.element.offsetWidth / 2) {
-      this.startHeroMoving('moveLeft');
+    if (x < this.element.offsetWidth / 3) {
+      this.field.startHeroMoving('moveLeft');
+    } else if (x > 2 * this.element.offsetWidth / 3) {
+      this.field.startHeroMoving('moveRight');
     } else {
-      this.startHeroMoving('moveRight');
+      this.field.playPause();
     }
-  }
-
-  startHeroMoving (direction) {
-    if (this.heroMoveInterval) {
-      clearInterval(this.heroMoveInterval);
-    }
-
-    var hero = this.field.getHero();
-    this.heroMoveInterval = setInterval(function() {hero[direction]();}, 60);
   }
 
   destroy() {
-    if (this.heroMoveInterval) {
-      clearInterval(this.heroMoveInterval);
-    }
-
     this.heroView.destroy();
     this.ballView.destroy();
     this.field.destroy();
