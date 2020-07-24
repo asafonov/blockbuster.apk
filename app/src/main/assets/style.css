@@ -151,10 +151,24 @@ div {
     line-height: var(--size_3);
 }
 
+.scores.high {
+    right: var(--size_3);
+    top: 0;
+    left: auto;
+}
+
 .scores span {
     font-size: var(--size_2);
     line-height: 1.2;
     color: var(--c_green1);
+}
+
+.scores.new_high span {
+    color: var(--c_red1);
+}
+
+.scores.high span {
+    color: var(--c_white2);
 }
 
 .icons {
@@ -333,6 +347,26 @@ input[type=checkbox]:checked + .sound_label_ico span i {
     background-color: var(--c_green2);
     border-color: var(--c_green1);
 }
+
+#pause.info {
+    display: none;
+    width: auto;
+    height: auto;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
+    color: white;
+    text-align: center;
+    position: relative;
+
+}
+
+#pause.info h2 {
+    background-color: var(--c_black2);
+    box-shadow: 0 0 var(--size_0) 150vw var(--c_black2);
+    font-size: var(--size_4);
+}
+
 
 #gameover {
     display: none;

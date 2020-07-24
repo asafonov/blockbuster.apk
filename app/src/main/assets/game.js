@@ -631,6 +631,7 @@ class FieldView {
     this.itemHeight;
     this.field;
     this.element;
+    this.pauseOverlay;
     this.alertElement;
     this.onKeyDownProxy = this.onKeyDown.bind(this);
     this.onTouchProxy = this.onTouch.bind(this);
@@ -660,6 +661,7 @@ class FieldView {
 
   initView() {
     this.element = document.getElementById('field');
+    this.pauseOverlay = document.getElementById('pause');
     this.heroView = new HeroView();
     this.initSize();
   }
@@ -756,6 +758,10 @@ class FieldView {
     asafonov.settings.sfx && this.bonusSound.play();
   }
 
+  togglePauseOverlay() {
+    this.pauseOverlay.style.display = this.field.isPaused ? 'block' : 'none'
+  }
+
   onKeyDown (e) {
     if (e.keyCode == 37) {
       this.field.startHeroMoving('moveLeft');
@@ -763,6 +769,7 @@ class FieldView {
       this.field.startHeroMoving('moveRight');
     } else if (e.keyCode == 32) {
       this.field.playPause();
+      this.togglePauseOverlay();
     }
   }
 
@@ -776,6 +783,7 @@ class FieldView {
       this.field.startHeroMoving('moveRight');
     } else {
       this.field.playPause();
+      this.togglePauseOverlay();
     }
   }
 
@@ -855,15 +863,33 @@ class ScoreView {
 
   constructor() {
     this.element = document.querySelector('div.scores span');
+    this.highscoreElement = document.querySelector('div.high span');
     asafonov.messageBus.subscribe(asafonov.events.SCORES_UPDATED, this, 'onScoresUpdated');
+    asafonov.messageBus.subscribe(asafonov.events.NEW_HIGHSCORE, this, 'onNewHighscore');
+    this.displayHighscore();
   }
 
   onScoresUpdated (eventData) {
     this.displayScore(eventData.scores);
   }
 
+  onNewHighscore (eventData) {
+    this.element.parentNode.classList.add('new_high');
+  }
+
   displayScore (score) {
     this.element.innerHTML = score;
+  }
+
+  displayHighscore() {
+    this.highscoreElement.innerHTML = asafonov.score.getHighScore() || "0";
+  }
+
+  destroy() {
+    this.element = null;
+    this.highscoreElement = null;
+    asafonov.messageBus.unsubscribe(asafonov.events.SCORES_UPDATED, this, 'onScoresUpdated');
+    asafonov.messageBus.unsubscribe(asafonov.events.NEW_HIGHSCORE, this, 'onNewHighscore');
   }
 
 }
