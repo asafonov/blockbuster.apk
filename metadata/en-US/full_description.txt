@@ -1,0 +1,3 @@
+Block'Buster is a simple HTML5 arkanoid-type game.
+It is written in pure Javascript and works in every modern browser.
+There is also an Android application.
