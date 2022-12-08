@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "org.asafonov.blockbuster"
         minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 6
-        versionName "1.0"
+        targetSdkVersion 30
+        versionCode 7
+        versionName "1.1"
     }
     buildTypes {
         release {
