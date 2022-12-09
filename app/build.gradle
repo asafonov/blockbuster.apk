@@ -7,8 +7,8 @@ android {
         applicationId "org.asafonov.blockbuster"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 7
-        versionName "1.1"
+        versionCode 8
+        versionName "1.2"
     }
     buildTypes {
         release {
