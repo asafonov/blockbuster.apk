@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "org.asafonov.blockbuster"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 8
         versionName "1.2"
     }
