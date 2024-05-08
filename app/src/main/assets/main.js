@@ -5,23 +5,19 @@ class AbstractBonus {
     this.obj = obj
     this.reverseProxy = this.reverse.bind(this);
   }
-
   // stub for override
   getMessage() {
   }
-
   // stub for override
   apply() {
     asafonov.messageBus.send(asafonov.events.BONUS_APPLIED, {message: this.getMessage()});
     setTimeout(this.reverseProxy, this.timeout);
   }
-
   // stub for override
   reverse() {
   }
 }
 class Ball {
-
   constructor() {
     this.position = new Point(0, 0);
     this.direction = Math.random() > 0.5 ? Ball.DIRECTION_UPRIGHT : Ball.DIRECTION_UPLEFT;
@@ -29,32 +25,26 @@ class Ball {
     this.speed = asafonov.settings.ballSpeed;
     this.resume();
   }
-
   resume() {
     this.interval = setInterval(this.move.bind(this), 50);
   }
-
   pause() {
     clearInterval(this.interval);
   }
-
   moveByDelta (delta) {
     this.moveTo(this.position.x + delta.x, this.position.y + delta.y);
   }
-
   move() {
     var x = this.direction == Ball.DIRECTION_UPRIGHT || this.direction == Ball.DIRECTION_DOWNRIGHT ? 1 : -1;
     var y = this.direction == Ball.DIRECTION_UPRIGHT || this.direction == Ball.DIRECTION_UPLEFT ? -1 : 1;
     this.moveByDelta(new Point(x * this.angle * this.speed, y * this.speed));
   }
-
   moveTo (x, y) {
     var position = new Point(this.position.x, this.position.y);
     this.position.x = x;
     this.position.y = y;
     asafonov.messageBus.send(asafonov.events.BALL_MOVED, {obj: this, fromPosition: position});
   }
-
   changeDirection (wallType) {
     if (wallType == Ball.CORNER_WALL) {
       if (this.direction == Ball.DIRECTION_UPRIGHT) {
@@ -71,16 +61,13 @@ class Ball {
     } else if (wallType == Ball.HORIZONTAL_WALL) {
       this.direction += this.direction < 3 ? 2 : -2;
     }
-
     asafonov.messageBus.send(asafonov.events.BALL_CHANGED_DIRECTION, {});
   }
-
   destroy() {
     this.pause();
     console.log("Ball destroy");
   }
 }
-
 Ball.DIRECTION_UPRIGHT = 1;
 Ball.DIRECTION_UPLEFT = 2;
 Ball.DIRECTION_DOWNRIGHT = 3;
@@ -93,22 +80,18 @@ class BallSpeedBonus extends AbstractBonus {
     super(hero, obj);
     this.speed = Math.random() < 0.5 ? asafonov.settings.ballSpeed * 3/4 : asafonov.settings.ballSpeed * 1.5;
   }
-
   getMessage() {
     return "Ball's speed has changed";
   }
-
   apply() {
     this.obj.speed = this.speed;
     super.apply();
   }
-
   reverse() {
     this.obj.speed = asafonov.settings.ballSpeed;
   }
 }
 class Field {
-
   constructor (width, height) {
     this.width = width || 40;
     this.height = height || 30;
@@ -118,46 +101,39 @@ class Field {
     this.ball = null;
     this.heroMoveInterval;
     this.isPaused = false;
+    this.directions = ['moveLeft', 'moveRight']
+    this.currentDirection = -1
     asafonov.messageBus.subscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
     asafonov.messageBus.subscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
   }
-
   setHero (hero) {
     this.hero = hero;
     this.hero.moveTo(this.width / 2 - (this.hero.width + 1) / 2, this.height - 1);
     asafonov.messageBus.send(asafonov.events.FIELD_HERO_ADDED, {field: this});
   }
-
   setBall (ball) {
     this.ball = ball;
     this.ball.moveTo(this.width / 2 - 1, this.height - 2);
     asafonov.messageBus.send(asafonov.BALL_ADDED, {field: this, ball: ball});
   }
-
   getHero() {
     return this.hero;
   }
-
   getHeroPosition() {
     return this.hero.position;
   }
-
   onHeroMoved (eventData) {
     this.correctPosition(eventData.obj);
   }
-
   onBallMoved (eventData) {
     this.correctBallPosition(eventData.obj, eventData.fromPosition);
   }
-
   positionToIndex (position) {
     return parseInt(position.y, 10) * this.width + parseInt(position.x, 10);
   }
-
   indexToPosition (index) {
     return new Point(index % this.width, parseInt(index / this.width, 10));
   }
-
   setObjectMap (objects) {
     for (var i = 0; i < objects.length; ++i) {
       if (objects[i] !== null && objects[i] !== undefined) {
@@ -165,23 +141,19 @@ class Field {
       }
     }
   }
-
   addObject (type, position) {
     var index = this.positionToIndex(position);
     this.objects[index] = type;
     asafonov.messageBus.send(asafonov.events.OBJECT_ADDED, {type: type, position: position, index: index});
-
     if (type !== null && type !== undefined && type > 0) {
       ++this.objectsCount;
     }
   }
-
   correctPosition (obj) {
     if (obj.position.x < 0 || obj.position.x + obj.width > this.width) {
       obj.moveTo(obj.position.x < 0 ? 0 : this.width - obj.width, obj.position.y);
     }
   }
-
   checkCollision (obj) {
     var affectedPositions = [
       this.positionToIndex(obj.position),
@@ -197,27 +169,22 @@ class Field {
     var collision = false;
     var isVerticalWall = (this.objects[affectedPositions[1]] > 0 && (obj.direction == Ball.DIRECTION_UPLEFT || obj.direction == Ball.DIRECTION_DOWNLEFT))
       || (this.objects[affectedPositions[2]] > 0 && (obj.direction == Ball.DIRECTION_UPRIGHT || obj.direction == Ball.DIRECTION_DOWNRIGHT));
-
     for (var i = 0; i < affectedPositions.length; ++i) {
       if (this.objects[affectedPositions[i]] !== null && this.objects[affectedPositions[i]] !== undefined && this.objects[affectedPositions[i]] > 0) {
         this.processObjectCollision(affectedPositions[i]);
         collision = true;
       }
     }
-
     if (collision) {
       var downPositionIndex = this.positionToIndex({x: obj.position.x, y: obj.position.y + 1});
       obj.changeDirection(Ball[isVerticalWall ? 'VERTICAL_WALL' : 'HORIZONTAL_WALL']);
       this.applyBonuses(obj);
-
       if (this.objectsCount <= 0) {
         asafonov.messageBus.send(asafonov.events.GAME_WON, {});
       }
     }
-
     return collision;
   }
-
   applyBonuses (obj) {
     if (Math.random() < 0.1) {
       var index = parseInt(asafonov.bonuses.length * Math.random(), 10);
@@ -225,26 +192,21 @@ class Field {
       bonus.apply();
     }
   }
-
   processObjectCollision (i) {
     if (this.objects[i] !== null && this.objects[i] !== undefined && this.objects[i] > 0) {
       --this.objects[i];
       asafonov.messageBus.send(asafonov.events.OBJECT_COLLISION, {index: i, type: this.objects[i]});
-
       if (this.objects[i] == 0) {
         --this.objectsCount;
       }
     }
   }
-
   correctBallPosition (obj, fromPosition) {
     if (this.checkCollision(obj)) {
       return;
     }
-
     if (obj.position.y >= this.height - 1 && obj.position.x >= this.hero.position.x && obj.position.x <= this.hero.position.x + this.hero.width - 1) {
       var wallType = Ball.HORIZONTAL_WALL;
-
       if ((this.hero.position.x == obj.position.x && obj.direction == Ball.DIRECTION_DOWNRIGHT)
       || (obj.position.x - this.hero.position.x == this.hero.width - 1 && obj.direction == Ball.DIRECTION_DOWNLEFT)) {
         obj.angle = 2;
@@ -256,12 +218,10 @@ class Field {
       } else {
         obj.angle = 1;
       }
-
       if ((obj.position.x - this.hero.position.x <= this.hero.width / 2- 1 / 2 && obj.direction == Ball.DIRECTION_DOWNRIGHT)
       || (obj.position.x - this.hero.position.x >= this.hero.width / 2 - 1 / 2 && obj.direction == Ball.DIRECTION_DOWNLEFT)) {
         wallType = Math.random() < 0.5 ? Ball.CORNER_WALL : wallType;
       }
-
       obj.changeDirection(wallType);
       obj.position = fromPosition;
       obj.move();
@@ -277,32 +237,32 @@ class Field {
       asafonov.messageBus.send(asafonov.events.GAME_LOST, {});
     }
   }
-
   playPause() {
     this[this.isPaused ? 'resume' : 'pause']();
     this.isPaused = ! this.isPaused;
   }
-
   startHeroMoving (direction) {
+    if (this.currentDirection === -1) {
+      this.currentDirection = this.directions.indexOf(direction)
+    } else {
+      this.currentDirection = 1 - this.currentDirection
+      direction = this.directions[this.currentDirection]
+    }
     if (this.heroMoveInterval) {
       clearInterval(this.heroMoveInterval);
     }
-
     const hero = this.hero;
     this.heroMoveInterval = setInterval(function() {hero[direction]();}, 60);
   }
-
   resume() {
     this.ball.resume();
   }
-
   pause() {
     if (this.heroMoveInterval) {
       clearInterval(this.heroMoveInterval);
     }
     this.ball.pause();
   }
-
   destroy() {
     this.pause();
     this.hero.destroy();
@@ -311,55 +271,46 @@ class Field {
     this.ball = null;
     asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
     asafonov.messageBus.unsubscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
-
     for (var i = 0; i < this.objects.length; ++i) {
       this.objects[i] = null;
     }
-
     this.objects.length = 0;
+    this.directions = null
+    this.currentDirection = null
     console.log("Field destroy");
   }
 }
 class Subject {
-
   constructor() {
     this.position = new Point(0, 0);
     this.width = asafonov.settings.heroWidth;
     this.speed = 1;
   }
-
   moveLeft() {
     this.move(new Point(-1 * this.speed ,0));
   }
-
   moveRight() {
     this.move(new Point(1 * this.speed, 0));
   }
-
   moveUp() {
     this.move(new Point(0, -1 * this.speed));
   }
-
   moveDown() {
     this.move(new Point(0, 1 * this.speed));
   }
-
   move (delta) {
     this.moveTo(this.position.x + delta.x, this.position.y + delta.y);
   }
-
   moveTo (x, y) {
     var position = new Point(this.position.x, this.position.y);
     this.position.x = x;
     this.position.y = y;
     asafonov.messageBus.send(asafonov.events.FIELD_HERO_MOVED, {obj: this, fromPosition: position});
   }
-
   setWidth (width) {
     this.width = width;
     asafonov.messageBus.send(asafonov.events.HERO_WIDTH_CHANGED, {obj: this});
   }
-
   destroy() {
     console.log("Hero destroy");
   }
@@ -369,16 +320,13 @@ class HeroSpeedBonus extends AbstractBonus {
     super(hero, obj);
     this.speed = Math.random() < 0.5 ? 3/4 : 1.5;
   }
-
   getMessage() {
     return "Your speed has changed";
   }
-
   apply() {
     this.hero.speed = this.speed;
     super.apply();
   }
-
   reverse() {
     this.hero.speed = 1;
   }
@@ -388,16 +336,13 @@ class HeroWidthBonus extends AbstractBonus {
     super(hero, obj);
     this.width = (Math.random() < 0.5 ? -2 : 2) + asafonov.settings.heroWidth;
   }
-
   getMessage() {
     return "Your width has changed";
   }
-
   apply() {
     this.hero.setWidth(this.width);
     super.apply();
   }
-
   reverse() {
     this.hero.setWidth(asafonov.settings.heroWidth);
   }
@@ -407,87 +352,64 @@ class Levels {
     this.levels = [];
     this.init(field);
   }
-
   init (field) {
     let objectMap = [];
     let iwidth = field.width / 2;
     let iheight = parseInt(field.height / 2);
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(j < field.width / 2 - iwidth / 2 || j >= field.width / 2 - iwidth / 2 + iwidth ? 0 : i % 2 + 1);
       }
-
       iwidth -= 2;
     }
-
     this.levels.push(objectMap);
-
     iwidth = field.width / 2;
     iheight = parseInt(field.height / 3);
     objectMap = [];
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(j < field.width / 2 - iwidth / 2 || j >= field.width / 2 - iwidth / 2 + iwidth ? i % 2 + 1 : 0);
       }
-
       iwidth -= 2;
     }
-
     this.levels.push(objectMap);
-
     objectMap = [];
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(j % 4 == 0 ? 1 : 0);
       }
     }
-
     this.levels.push(objectMap);
-
     objectMap = [];
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(parseInt(j / 4) % 2 == 0 ? 2 : 0);
       }
     }
-
     this.levels.push(objectMap);
-
     objectMap = [];
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(j % 4 == 0 ? 2 : 0);
       }
     }
-
     this.levels.push(objectMap);
-
     objectMap = [];
-
     for (let i = 0; i < iheight; ++i) {
       for (let j = 0; j < field.width; ++j) {
         objectMap.push(parseInt(j / 4) % 2 == 0 ? 1 : 0);
       }
     }
-
     this.levels.push(objectMap);
   }
-
   getRandom() {
     return this.levels[parseInt(Math.random() * this.levels.length, 10)];
   }
 }
 class MessageBus {
-
   constructor() {
     this.subscribers = {};
   }
-
   send (type, data) {
     if (this.subscribers[type] !== null && this.subscribers[type] !== undefined) {
       for (var i = 0; i < this.subscribers[type].length; ++i) {
@@ -495,18 +417,15 @@ class MessageBus {
       }
     }
   }
-
   subscribe (type, object, func) {
     if (this.subscribers[type] === null || this.subscribers[type] === undefined) {
       this.subscribers[type] = [];
     }
-
     this.subscribers[type].push({
       object: object,
       func: func
     });
   }
-
   unsubscribe (type, object, func) {
     for (var i = 0; i < this.subscribers[type].length; ++i) {
       if (this.subscribers[type][i].object === object && this.subscribers[type][i].func === func) {
@@ -515,16 +434,13 @@ class MessageBus {
       }
     }
   }
-
   unsubsribeType (type) {
     delete this.subscribers[type];
   }
-
   destroy() {
     for (type in this.subscribers) {
       this.unsubsribeType(type);
     }
-
     this.subscribers = null;
   }
 }
@@ -535,7 +451,6 @@ class Point {
   }
 }
 class Score {
-
   constructor (hero, ball) {
     this.hero = hero;
     this.ball = ball;
@@ -546,54 +461,43 @@ class Score {
     this.highscoreReported = false;
     asafonov.messageBus.subscribe(asafonov.events.OBJECT_COLLISION, this, 'onObjectCollision');
   }
-
   onObjectCollision (eventData) {
     this.scores += parseInt(Score.BASE_SCORE / (++eventData.type) * this.ball.angle * this.ball.speed * this.hero.speed * (this.hero.width < asafonov.settings.heroWidth ? 2 : 1) * (this.hero.width > asafonov.settings.heroWidth ? 1/2 : 1), 10);
     asafonov.messageBus.send(asafonov.events.SCORES_UPDATED, {scores: this.scores});
     this.highscore > 0 && this.isNewHighScore() && ! this.highscoreReported && (this.highscoreReported = true) && asafonov.messageBus.send(asafonov.events.NEW_HIGHSCORE, {highscore: this.scores});
   }
-
   getHighScore() {
     return window.localStorage.getItem('highscore') || 0;
   }
-
   updateHighScore() {
     window.localStorage.setItem('highscore', this.scores);
     return true;
   }
-
   processGameWon() {
     this.wonGames++;
     this.scores *= 2;
     asafonov.messageBus.send(asafonov.events.SCORES_UPDATED, {scores: this.scores});
   }
-
   isNewHighScore() {
     return this.scores > this.highscore;
   }
-
   updateGameStats() {
     this.totalGames++;
     window.localStorage.setItem('totalGames', this.totalGames);
     window.localStorage.setItem('wonGames', this.wonGames);
   }
-
 }
-
 Score.BASE_SCORE = 8;
 class BallView {
-
   constructor() {
     this.element = document.createElement('div');
     this.element.id = 'ball';
     asafonov.messageBus.subscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
-
     if (asafonov.settings.sfx) {
       this.ballChangedDirectionSound = new Audio('sound/ball.mp3');
       asafonov.messageBus.subscribe(asafonov.events.BALL_CHANGED_DIRECTION, this, 'onBallChangedDirection');
     }
   }
-
   setSize (width, height) {
     this.width = width || this.width;
     this.height = height || this.height;
@@ -601,29 +505,23 @@ class BallView {
     this.element.style.width = displaySize + 'px';
     this.element.style.height = displaySize + 'px';
   }
-
   onBallMoved (eventData) {
     var position = eventData.obj.position;
     this.element.style.marginLeft = (this.width * position.x) + 'px';
     this.element.style.marginTop = (this.height * position.y) + 'px';
   }
-
   onBallChangedDirection() {
     this.ballChangedDirectionSound.play();
   }
-
   destroy() {
     asafonov.messageBus.unsubscribe(asafonov.events.BALL_MOVED, this, 'onBallMoved');
-
     if (asafonov.settings.sfx) {
       asafonov.messageBus.unsubscribe(asafonov.events.BALL_CHANGED_DIRECTION, this, 'onBallChangedDirection');
     }
-
     console.log("BallView destroy");
   }
 }
 class FieldView {
-
   constructor() {
     this.width;
     this.height;
@@ -639,13 +537,11 @@ class FieldView {
     this.objectCollisionSound = new Audio('sound/explosion.mp3');
     this.bonusSound = new Audio('sound/bonus.mp3');
   }
-
   init() {
     this.addEventListeners();
     this.initView();
     this.initAlerts();
   }
-
   addEventListeners() {
     asafonov.messageBus.subscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onHeroAdded');
     asafonov.messageBus.subscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onBallAdded');
@@ -658,14 +554,12 @@ class FieldView {
     window.addEventListener('keydown', this.onKeyDownProxy);
     window.addEventListener('touchstart', this.onTouchProxy);
   }
-
   initView() {
     this.element = document.getElementById('field');
     this.pauseOverlay = document.getElementById('pause');
     this.heroView = new HeroView();
     this.initSize();
   }
-
   initSize() {
     this.width = this.element.offsetWidth;
     this.height = this.element.offsetHeight;
@@ -673,16 +567,13 @@ class FieldView {
     this.itemHeight = this.height / this.field.height;
     this.heroView.setSize(this.itemWidth, this.itemHeight);
   }
-
   onGameLost() {
     this.gameOver("You Lost :(");
   }
-
   onGameWon() {
     asafonov.score.processGameWon();
     this.gameOver("You Won!");
   }
-
   gameOver (msg) {
     asafonov.score.updateGameStats();
     document.querySelector('#gameover').style.display = 'block';
@@ -694,34 +585,28 @@ class FieldView {
     isNewHighScore && asafonov.score.updateHighScore() && (document.querySelector('#highscore span').innerHTML = asafonov.score.scores);
     this.destroy();
   }
-
   onNewHighscore() {
     this.alert("New HighScore!");
     asafonov.settings.sfx && this.bonusSound.play();
   }
-
   alert (msg) {
     this.alertElement.innerHTML = msg;
     this.alertElement.style.display = 'block';
     setTimeout(this.hideAlertProxy, 3000);
   }
-
   hideAlert() {
     this.alertElement.style.display = 'none';
   }
-
   initAlerts() {
     this.alertElement = document.createElement('div');
     this.alertElement.className = 'alert';
     document.body.appendChild(this.alertElement);
     this.hideAlert();
   }
-
   onObjectAdded (eventData) {
     if (eventData.type === null || eventData.type === undefined || eventData.type == 0) {
       return;
     }
-
     var element = document.createElement('div');
     element.style.marginTop = this.itemHeight * eventData.position.y + 'px';
     element.style.marginLeft = this.itemWidth * eventData.position.x + 'px';
@@ -732,36 +617,29 @@ class FieldView {
     element.id = 'object_' + eventData.index;
     this.element.appendChild(element);
   }
-
   onObjectCollision (eventData) {
     var element = document.getElementById('object_' + eventData.index);
     element.className = 'object object_' + eventData.type;
-
     if (! (eventData.type > 0)) {
       asafonov.settings.sfx && this.objectCollisionSound.play();
       this.element.removeChild(element);
     }
   }
-
   onHeroAdded (eventData) {
     this.element.appendChild(this.heroView.element);
   }
-
   onBallAdded (eventData) {
     this.ballView = new BallView();
     this.ballView.setSize(this.itemWidth, this.itemHeight);
     this.element.appendChild(this.ballView.element);
   }
-
   onBonusApplied (eventData) {
     this.alert(eventData.message);
     asafonov.settings.sfx && this.bonusSound.play();
   }
-
   togglePauseOverlay() {
     this.pauseOverlay.style.display = this.field.isPaused ? 'block' : 'none'
   }
-
   onKeyDown (e) {
     if (e.keyCode == 37) {
       this.field.startHeroMoving('moveLeft');
@@ -772,11 +650,9 @@ class FieldView {
       this.togglePauseOverlay();
     }
   }
-
   onTouch (e) {
     e.preventDefault();
     var x = e.touches[e.touches.length - 1].clientX;
-
     if (x < this.element.offsetWidth / 3) {
       this.field.startHeroMoving('moveLeft');
     } else if (x > 2 * this.element.offsetWidth / 3) {
@@ -786,7 +662,6 @@ class FieldView {
       this.togglePauseOverlay();
     }
   }
-
   destroy() {
     this.heroView.destroy();
     this.ballView.destroy();
@@ -808,7 +683,6 @@ class FieldView {
   }
 }
 class HeroView {
-
   constructor() {
     this.element = document.createElement('div');
     this.element.id = 'hero';
@@ -817,41 +691,33 @@ class HeroView {
     asafonov.messageBus.subscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
     asafonov.messageBus.subscribe(asafonov.events.HERO_WIDTH_CHANGED, this, 'onHeroWidthChanged');
   }
-
   setSize (width, height) {
     this.width = width || this.width;
     this.height = height || this.height;
-
     if (this.hero === null || this.hero === undefined) {
       return ;
     }
-
     this.updateWidth();
   }
-
   updateWidth() {
     this.element.style.width = this.hero.width * this.width + 'px';
     this.element.style.height = this.height + 'px';
     this.element.style.backgroundSize = this.hero.width * this.width + 'px ' + this.height + 'px';
   }
-
   onHeroMoved (eventData) {
     var position = eventData.obj.position;
     this.element.style.marginLeft = (this.width * position.x) + 'px';
     this.element.style.marginTop = (this.height * position.y) + 'px';
   }
-
   onHeroAdded (eventData) {
     this.hero = eventData.field.getHero();
     this.setSize();
   }
-
   onHeroWidthChanged (eventData) {
     if (this.hero === eventData.obj) {
       this.updateWidth();
     }
   }
-
   destroy() {
     asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_ADDED, this, 'onHeroAdded');
     asafonov.messageBus.unsubscribe(asafonov.events.FIELD_HERO_MOVED, this, 'onHeroMoved');
@@ -860,7 +726,6 @@ class HeroView {
   }
 }
 class ScoreView {
-
   constructor() {
     this.element = document.querySelector('div.scores span');
     this.highscoreElement = document.querySelector('div.high span');
@@ -868,30 +733,24 @@ class ScoreView {
     asafonov.messageBus.subscribe(asafonov.events.NEW_HIGHSCORE, this, 'onNewHighscore');
     this.displayHighscore();
   }
-
   onScoresUpdated (eventData) {
     this.displayScore(eventData.scores);
   }
-
   onNewHighscore (eventData) {
     this.element.parentNode.classList.add('new_high');
   }
-
   displayScore (score) {
     this.element.innerHTML = score;
   }
-
   displayHighscore() {
     this.highscoreElement.innerHTML = asafonov.score.getHighScore() || "0";
   }
-
   destroy() {
     this.element = null;
     this.highscoreElement = null;
     asafonov.messageBus.unsubscribe(asafonov.events.SCORES_UPDATED, this, 'onScoresUpdated');
     asafonov.messageBus.unsubscribe(asafonov.events.NEW_HIGHSCORE, this, 'onNewHighscore');
   }
-
 }
 window.asafonov = {};
 window.asafonov.messageBus = new MessageBus();
