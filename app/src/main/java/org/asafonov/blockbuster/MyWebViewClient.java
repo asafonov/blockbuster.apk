@@ -1,4 +1,4 @@
-package org.asafonov.arkanoid;
+package org.asafonov.blockbuster;
 
 import android.content.Intent;
 import android.net.Uri;
