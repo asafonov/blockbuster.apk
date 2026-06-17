@@ -11,3 +11,18 @@ Block'Buster is a simple HTML5 arkanoid-type game to spend some free time. Break
      height="80">](https://play.google.com/store/apps/details?id=org.asafonov.blockbuster)
 
 Or download the APK from the [Releases Section](https://github.com/asafonov/blockbuster.apk/releases/latest).
+
+Third-party fonts
+-----------------
+
+**Font**: Iceland
+
+**License**: [SIL Open Font License](https://scripts.sil.org/OFL)
+
+**Source**: [Cyreal](https://www.cyreal.org)
+
+**Font**: Play
+
+**License**: [SIL Open Font License](https://scripts.sil.org/OFL)
+
+**Source**: [Github](https://github.com/alexeiva/play)
